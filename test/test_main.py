@@ -11,6 +11,16 @@ def test_get_database(size):
     assert set(db_json.keys()) == {"movies", "actors"}
 
 
+def test_movies_dataframe():
+    df = movie_db_instance.movies_relational_dataframe
+    pass
+
+
+def test_actors_dataframe():
+    df = movie_db_instance.actors_dataframe
+    pass
+
+
 @pytest.mark.parametrize(
     "actor_id,full_name,kevin_bacon_number",
     [
@@ -27,3 +37,4 @@ def test_get_database(size):
 )
 def test_kevin_bacon_number(actor_id: int, full_name: str, kevin_bacon_number: int):
     db = movie_db_instance.get_database("small")
+    pass
