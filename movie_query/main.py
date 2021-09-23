@@ -91,22 +91,25 @@ class MovieDatabaseServer:
             costars |= movie_stars
         return costars
 
-    def get_star_names(self, star_ids: Iterable[str]) -> List[str]:
-        return [self.get_actor_name_by_id(actor_id) for actor_id in star_ids]
+    def get_degrees_of_separation(self, actor_id1, actor_id2) -> int:
+        pass
 
 
-server = MovieDatabaseServer()
+database = MovieDatabaseServer()
 
-kb_id = server.get_actor_id_by_name("Kevin Bacon")
+kb_id = database.get_actor_id_by_name("Kevin Bacon")
 print(kb_id)
 
 
-kb_movie_id = next(server.get_actors_movie_ids(kb_id))
-kb_movie_title = server.get_movie_title_by_id(kb_movie_id)
+kb_movie_id = next(database.get_actors_movie_ids(kb_id))
+kb_movie_title = database.get_movie_title_by_id(kb_movie_id)
 print(f"Kevin Bacon has starred in {kb_movie_title}.")
 
-kb_costar_ids = server.get_costar_ids(kb_id)
-kb_costar_names = server.get_star_names(kb_costar_ids)
+
+kb_costar_ids = database.get_costar_ids(kb_id)
+kb_costar_names = [
+    database.get_actor_name_by_id(actor_id) for actor_id in kb_costar_ids
+]
 print("Kevin Bacon has co-starred with these actors:")
 for star in kb_costar_names:
     print(f"    {star}")
