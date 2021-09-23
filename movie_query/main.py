@@ -36,7 +36,7 @@ class MovieDatabaseServer:
                 )
                 sys.exit(1)
 
-    def get_database(self):
+    def get_database(self) -> dict:
         return self.raw_database
 
     def download_database(self, caching=True) -> dict:
@@ -65,7 +65,6 @@ class MovieDatabaseServer:
         df = df.explode("actors")
         df.rename(columns={"actors": "actor"}, inplace=True)
         df["actor"] = df["actor"].astype(str)
-        # df.set_index("index", inplace=True)
         return df
 
     @property
@@ -156,9 +155,10 @@ def get_kb_movie_title(database: MovieDatabaseServer) -> str:
     return database.get_movie_title_by_id(kb_movie_id)
 
 
-def get_kb_costars(database: MovieDatabaseServer) -> List[str]:
+def print_kb_costars(database: MovieDatabaseServer) -> List[str]:
     kb_costar_ids = database.get_costar_ids(kb_id)
-    return [database.get_actor_name_by_id(actor_id) for actor_id in kb_costar_ids]
+    for star in (database.get_actor_name_by_id(actor_id) for actor_id in kb_costar_ids):
+        print(f"    {star}")
 
 
 database = MovieDatabaseServer("small")
@@ -173,10 +173,10 @@ print(f"Kevin Bacon has starred in {kb_movie_title}.")
 
 
 print("Kevin Bacon has co-starred with these actors:")
-for star in get_kb_costars(database):
-    print(f"    {star}")
+print_kb_costars(database)
 
-other_actor = "Tom Hanks"
+
+other_actor = "Thora Birch"
 other_actor_id = database.get_actor_id_by_name(other_actor)
 
 kbn = database.get_degrees_of_separation(kb_id, other_actor_id)
