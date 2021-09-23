@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import Generator
-import cachecontrol
+from typing import Generator, Iterable, List, Set
+
 import pandas as pd
-from pandas.core.frame import DataFrame
 import requests
 from cachecontrol import CacheControl
 
@@ -55,7 +54,7 @@ class MovieDatabaseServer:
         df.columns = ["index", "actor"]
         return df
 
-    def get_actors_movie_ids(self, actor_id) -> Generator[str, None, None]:
+    def get_actors_movie_ids(self, actor_id: str) -> Generator[str, None, None]:
         """
         Returns first movie ID matching a given actor
         """
@@ -65,14 +64,35 @@ class MovieDatabaseServer:
         ]
         yield from movies["index"]
 
-    def get_movie_title_by_id(self, index) -> str:
+    def get_movie_title_by_id(self, index: str) -> str:
         movie_row = self.movie_titles.loc[self.movie_titles["index"] == index].iloc[0]
         return movie_row["title"]
 
-    def get_actor_id_by_name(self, full_name) -> str:
+    def get_actor_id_by_name(self, full_name: str) -> str:
         return self.actors_dataframe[self.actors_dataframe["actor"] == full_name].iloc[
             0
         ]["index"]
+
+    def get_actor_name_by_id(self, actor_id: str) -> str:
+        return self.actors_dataframe[self.actors_dataframe["index"] == actor_id].iloc[
+            0
+        ]["actor"]
+
+    def get_costar_ids(self, actor_id: str) -> Set[str]:
+        costars = set()
+        for movie_id in self.get_actors_movie_ids(actor_id):
+            movie_stars = {
+                movie_star_id
+                for movie_star_id in self.movies_relational_dataframe.loc[
+                    self.movies_relational_dataframe["index"] == movie_id
+                ]["actor"]
+                if movie_star_id != actor_id
+            }
+            costars |= movie_stars
+        return costars
+
+    def get_star_names(self, star_ids: Iterable[str]) -> List[str]:
+        return [self.get_actor_name_by_id(actor_id) for actor_id in star_ids]
 
 
 server = MovieDatabaseServer()
@@ -84,3 +104,9 @@ print(kb_id)
 kb_movie_id = next(server.get_actors_movie_ids(kb_id))
 kb_movie_title = server.get_movie_title_by_id(kb_movie_id)
 print(f"Kevin Bacon has starred in {kb_movie_title}.")
+
+kb_costar_ids = server.get_costar_ids(kb_id)
+kb_costar_names = server.get_star_names(kb_costar_ids)
+print("Kevin Bacon has co-starred with these actors:")
+for star in kb_costar_names:
+    print(f"    {star}")
