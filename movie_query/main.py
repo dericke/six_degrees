@@ -8,6 +8,7 @@ import networkx as nx
 import pandas as pd
 import requests
 from cachecontrol import CacheControl
+from networkx.exception import NetworkXNoPath
 from requests.models import HTTPError
 from requests.sessions import HTTPAdapter
 
@@ -115,7 +116,6 @@ class MovieDatabaseServer:
         indexed_movies = self.movies_relational_dataframe[["actor", "index"]]
         indexed_movies.rename(columns={"index": "movie"}, inplace=True)
 
-        # data_to_merge = indexed_movies.drop_duplicates()
         indexed_movies = indexed_movies.merge(
             indexed_movies.rename(columns={"actor": "actor_2"}), on="movie"
         )
@@ -132,13 +132,12 @@ class MovieDatabaseServer:
     def get_degrees_of_separation(
         self, actor1_id: str, actor2_id: str
     ) -> Optional[int]:
-        path = nx.shortest_path(
-            self.build_actor_connection_graph(), actor1_id, actor2_id
-        )
-        if not path:
-            # No connection
+        try:
+            return nx.shortest_path_length(
+                self.build_actor_connection_graph(), actor1_id, actor2_id
+            )
+        except NetworkXNoPath:
             return None
-        return len(path) - 1
 
 
 def get_kbn(database: MovieDatabaseServer, other_actor_name) -> int:
